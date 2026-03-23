@@ -487,7 +487,7 @@ for (let i = 1; i <= 10; i++) {
         results.slice(0, 3).forEach((r, idx) => {
             if(idx === 0) r.history.forEach(h => document.getElementById(`tile-${h.land}`).classList.add('highlight-tile'));
             html += `<div class="${idx === 0 ? 'best-card' : 'route-item'}">
-                <strong>[${idx+1}순위] ${r.seq.join(' → ')}</strong> | 💰${r.totalCoin.toLocaleString()} | 💎${r.totalCube}개<br>
+                <strong>[${idx+1}순위] ${r.seq.join(' → ')}</strong> | 💰${r.totalCoin.toLocaleString()} | '<span style="color: purple;">⍰</span>'${r.totalCube}개<br>
                 <small>${r.history.map(h => `${h.land}번(+${h.gain})`).join(' → ')}</small>
             </div>`;
         });
