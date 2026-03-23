@@ -273,9 +273,9 @@
                 <div style="display:flex; align-items:center; gap:10px;">
                     <label style="font-weight:bold;">🎲 주사위</label>
                     <div class="dice-area">
-                        <input type="number" id="d1" min="-18" max="18" value="1">
-                        <input type="number" id="d2" min="-18" max="18" value="1">
-                        <input type="number" id="d3" min="-18" max="18" value="1">
+                        <input type="number" id="d1" min="-18" max="18">
+                        <input type="number" id="d2" min="-18" max="18">
+                        <input type="number" id="d3" min="-18" max="18">
                     </div>
                 </div>
                 <div class="q-option">
@@ -523,7 +523,6 @@ function handleTileClick(i, e) {
         tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} ${i === currentStartPos ? 'is-start' : ''}`;
     }
     else {
-// 아무 모드도 아닐 때: 시작 위치 설정 (이 부분을 찾으세요)
             document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start'));
             currentStartPos = i;
             const tile = document.getElementById(`tile-${i}`);
