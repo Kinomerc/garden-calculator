@@ -26,6 +26,10 @@
         padding: 20px;
       }
 
+      body.edit-active {
+        background-color: #FFFFFF !important; /* 전체 배경을 하얀 회색톤으로 */
+      }
+
       .board-container {
         position: relative;
         width: 1001px;
@@ -41,7 +45,7 @@
         width: 7.5%;
         height: 7.5%;
         cursor: pointer;
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0);
         border-radius: 4px;
         box-sizing: border-box;
         transition: 0.2s;
@@ -88,17 +92,23 @@
       .buff-05 { background-color: rgba(231, 76, 60, 0.5) !important; border: 2.5px solid var(--danger) !important; }
       .buff-3 { background-color: rgba(46, 204, 113, 0.5) !important; border: 2.5px solid var(--success) !important; }
 
-      .tile::after {
+.tile::after {
         position: absolute;
-        top: 48%;
+        top: 65%; 
         left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1rem;
+        transform: translateX(-50%);
+        font-size: 0.85rem; 
         font-weight: 900;
         color: white;
-        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+        text-shadow: 
+          -1px -1px 0 #000,  
+           1px -1px 0 #000,
+          -1px  1px 0 #000,
+           1px  1px 0 #000,
+           1px  1px 4px rgba(0, 0, 0, 0.9);
         opacity: 0;
         pointer-events: none;
+        z-index: 5;
       }
 
       .buff-2::after { content: '×2'; opacity: 1; }
@@ -274,13 +284,13 @@
             <p style="text-align:center; color:#7f8c8d; margin-top:20px; font-size:0.9rem;">
                 <b>주사위 눈 입력, ❓ 도달 시 보상 선택 후 <b>🚩 시작점</b>을 마우스 클릭으로 정하세요
                 <br> 이후 턴마다 바뀌는 배율, 1바퀴 마다 바뀌는 비료 보상 및 특수 발판을 수정하세요</b>
-                <br>❓에서는 확정 +200 또는 정해진 확률에 따라 성장 비료를 획득 합니다
+                <br>❓에서는 확정 +200 또는 아래 표시된 확률에 따라 성장 비료를 획득 합니다
                 <br> 50개 획득: 5%, 100개 획득: 45%, 300개 획득: 45%, 1000개 획득: 5% (평균 기대값 +232.5으로 계산됩니다)
                 <br>
                 <br><b>배율 수정</b>: 클릭 시 [x2 → ÷2 → x3] 순환
                 <br><b>비료 보상 수정</b>: 좌클릭(+100) / 우클릭(-100)
                 <br><b>특수 발판 수정</b>: 클릭 시 [기본 → 큐브+1 → 🔙-2 → 🔙-3 → 🔜+3] 순환
-
+                <br><b>계산 버튼을 누르면 최적의 경우의 수를 보여줍니다
             </p>
         </div>
     </div>
@@ -288,12 +298,12 @@
 
 <script>
     const cubeIcon = '<span style="color: purple;">⍰</span>';
-    let BOARD = Array.from({ length: 41 }, () => ({ c: 300, cube: 0, move: 0 }));
+let BOARD = Array.from({ length: 41 }, () => ({ c: 300, cube: 0, move: 0, is_q: false }));
 
     const initialData = {
         1: {c:300}, 2: {c:400}, 3: {c:100}, 4: {c:300}, 5: {c:300}, 6: {c:100}, 7: {c:400}, 8: {c:600}, 9: {c:600}, 10: {move:10},
         11: {c:300}, 12: {c:100}, 13: {c:400}, 14: {c:100}, 15: {move:-3}, 16: {c:300}, 17: {c:400}, 18: {c:100}, 19: {c:300}, 20: {c:400, cube:1},
-        21: {c:300}, 22: {c:300}, 23: {c:300}, 24: {c:400, cube:1}, 25: {c:600}, 26: {move:-2}, 27: {c:400}, 28: {c:600}, 29: {c:300}, 30: {c:0},
+        21: {c:300}, 22: {c:300}, 23: {c:300}, 24: {c:400, cube:1}, 25: {c:600}, 26: {move:-2}, 27: {c:400}, 28: {c:600}, 29: {c:300}, 30: {c:0, is_q: true},
         31: {c:300}, 32: {c:600}, 33: {c:400}, 34: {c:400}, 35: {c:300}, 36: {c:300}, 37: {c:300}, 38: {c:100}, 39: {c:400}, 40: {c:500}
     };
 
@@ -358,9 +368,13 @@
         });
     }
 
-    function toggleMode(mode) {
+function toggleMode(mode) {
         if (activeMode === mode) activeMode = null;
         else activeMode = mode;
+
+        // activeMode가 null이 아니면(즉, 어떤 모드라도 켜져 있으면) body에 클래스 추가
+        document.body.classList.toggle('edit-active', activeMode !== null);
+
         document.getElementById('btn-edit-multiplier').classList.toggle('active-mode', activeMode === 'multiplier');
         document.getElementById('btn-edit-reward').classList.toggle('active-mode', activeMode === 'reward');
         document.getElementById('btn-edit-special').classList.toggle('active-mode', activeMode === 'special');
@@ -377,19 +391,15 @@ function updateTileDisplay(i) {
             return; 
         }
 
-        // 이동 발판 (🔜, 🔙, 🚀)
+// 10번 및 이동 발판
         if (tile.move !== 0) {
-            let icon = "";
-            let val = "";
-            if (i === 10) { icon = "🚀"; val = "+10"; }
-            else if (tile.move > 0) { icon = "🔜"; val = `+${tile.move}`; }
-            else { icon = "🔙"; val = `${tile.move}`; }
-            
+            let icon = (i === 10) ? "🚀" : (tile.move > 0 ? "🔜" : "🔙");
+            let val = (tile.move > 0) ? `+${tile.move}` : `${tile.move}`;
             displayElem.innerHTML = `${val}<br>${icon}`;
             return;
         }
 
-        // 일반 보상 발판 (⍰ 포함)
+        // 일반 보상 발판 (40번 포함)
         let txt = `+${tile.c}`;
         if (tile.cube > 0) {
             displayElem.innerHTML = `${txt}<br>${cubeIcon}`;
@@ -398,43 +408,65 @@ function updateTileDisplay(i) {
         }
     }
 
-    function handleTileClick(i, e) {
-        if (activeMode === 'reward') {
-            if (BOARD[i].move !== 0 || i === 30) return;
-            if (e.button === 0) BOARD[i].c = Math.min(600, BOARD[i].c + 100);
-            else if (e.button === 2) BOARD[i].c = Math.max(100, BOARD[i].c - 100);
-            updateTileDisplay(i);
-        } 
-        else if (activeMode === 'special') {
-            if (i === 30 || i === 10) return;
-            // 순환 로직: 일반 -> 큐브 -> -2 -> -3 -> +3 -> 일반
-            if (BOARD[i].cube === 0 && BOARD[i].move === 0) {
-                BOARD[i].cube = 1;
-            } else if (BOARD[i].cube === 1) {
-                BOARD[i].cube = 0; BOARD[i].move = -2;
-            } else if (BOARD[i].move === -2) {
-                BOARD[i].move = -3;
-            } else if (BOARD[i].move === -3) {
-                BOARD[i].move = 3;
-            } else {
-                BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 300;
-            }
-            updateTileDisplay(i);
-        } 
-        else if (activeMode === 'multiplier') {
-            boardBuffs[i] = (boardBuffs[i] + 1) % 4;
-            const tile = document.getElementById(`tile-${i}`);
-            tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} ${i === currentStartPos ? 'is-start' : ''}`;
-        }
-        else {
-            document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start'));
-            currentStartPos = i;
-            const tile = document.getElementById(`tile-${i}`);
-            tile.classList.add('is-start');
-            tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} is-start`;
-            document.getElementById('start-val').innerText = i + '번';
-        }
+
+function handleTileClick(i, e) {
+    // 30번(❓)과 40번(500)은 보상 및 특수 발판 수정 모드에서 차단
+    if (i === 30 || i === 40) {
+        if (activeMode === 'reward' || activeMode === 'special') return;
     }
+
+    if (activeMode === 'reward') {
+        if (i === 10) {
+            BOARD[i].move = 0; BOARD[i].is_q = false; BOARD[i].cube = 0; BOARD[i].c = 100;
+        } else {
+            if (BOARD[i].move !== 0) {
+                BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 100;
+            } else {
+                if (e.button === 0) BOARD[i].c = (BOARD[i].c >= 600) ? 100 : BOARD[i].c + 100;
+                else if (e.button === 2) BOARD[i].c = (BOARD[i].c <= 100) ? 600 : BOARD[i].c - 100;
+            }
+        }
+        updateTileDisplay(i);
+    } 
+    else if (activeMode === 'special') {
+        if (i === 10) {
+            if (BOARD[i].move === 10) { BOARD[i].move = 0; BOARD[i].c = 100; } 
+            else { BOARD[i].move = 10; BOARD[i].c = 0; }
+        } else {
+            if (BOARD[i].cube === 0 && BOARD[i].move === 0) { BOARD[i].cube = 1; } 
+            else if (BOARD[i].cube === 1) { BOARD[i].cube = 0; BOARD[i].move = -2; } 
+            else if (BOARD[i].move === -2) { BOARD[i].move = -3; } 
+            else if (BOARD[i].move === -3) { BOARD[i].move = 3; } 
+            else { BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 100; }
+        }
+        
+        // [추가] 특수 발판으로 변경될 때 해당 칸의 배율을 자동으로 제거
+        if (BOARD[i].move !== 0 || BOARD[i].is_q) {
+            boardBuffs[i] = 0;
+            const tileElem = document.getElementById(`tile-${i}`);
+            tileElem.className = `tile no-buff ${i === currentStartPos ? 'is-start' : ''}`;
+        }
+        updateTileDisplay(i);
+    } 
+    else if (activeMode === 'multiplier') {
+        // [수정] 이동 발판(move != 0)이나 ❓(is_q) 발판은 배율 설정을 막음
+        if (BOARD[i].move !== 0 || BOARD[i].is_q) return;
+
+        boardBuffs[i] = (boardBuffs[i] + 1) % 4;
+        const tile = document.getElementById(`tile-${i}`);
+        tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} ${i === currentStartPos ? 'is-start' : ''}`;
+    }
+    else {
+        document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start'));
+        currentStartPos = i;
+        const tile = document.getElementById(`tile-${i}`);
+        tile.classList.add('is-start');
+        tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} is-start`;
+        document.getElementById('start-val').innerText = i + '번';
+    }
+}
+
+
 
     function calculate() {
         const d = [parseInt(document.getElementById('d1').value), parseInt(document.getElementById('d2').value), parseInt(document.getElementById('d3').value)];
@@ -456,16 +488,14 @@ function updateTileDisplay(i) {
                 while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                 let tile = BOARD[pos];
                 
-                // 이동 발판 효과 (🚀+10, 🔙-2, 🔙-3, 🔜+3 등)
                 if(tile.move !== 0) { 
                     pos += tile.move; 
                     while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                     tile = BOARD[pos]; 
                 }
                 
-                let gain = (pos === 30) ? qVal : (tile.c || 0);
-                // 이동 효과가 있는 발판 "자체"의 코인 획득은 없으므로 0 (🚀+10 발판 제외)
-                if (BOARD[pos].move !== 0 && pos !== 10) gain = 0;
+                // 보상 계산 로직: ❓인 경우 qVal 사용, 이동 발판 위일 경우 0, 나머지는 c값
+                let gain = tile.is_q ? qVal : (tile.move !== 0 ? 0 : (tile.c || 0));
 
                 if(boardBuffs[pos] === 1) gain *= 2; 
                 else if(boardBuffs[pos] === 2) gain = Math.floor(gain * 0.5); 
@@ -477,6 +507,7 @@ function updateTileDisplay(i) {
             return { seq, totalCoin, totalCube, history };
         }).sort((a, b) => b.totalCoin - a.totalCoin || b.totalCube - a.totalCube);
 
+        /* ... 이후 결과 출력 로직 동일 ... */
         const resDiv = document.getElementById('result');
         document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlight-tile'));
         let html = `<h4>최적 순서: ${results[0].seq.join(' → ')}</h4>`;
@@ -489,6 +520,8 @@ function updateTileDisplay(i) {
         });
         resDiv.innerHTML = html;
     }
+
+
 
     window.onload = init;
 </script>
