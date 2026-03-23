@@ -269,7 +269,12 @@
 
         <div id="result">
             <p style="text-align:center; color:#7f8c8d; margin-top:20px; font-size:0.9rem;">
-                수정 모드가 아닐 때 발판을 클릭하면 🚩 <b>시작점</b>이 설정됩니다.
+                주사위 눈 입력, ❓ 도달 시 보상 선택 후 <b>🚩 시작점</b>을 마우스 클릭으로 정하세요
+                <br> 이후 턴마다 바뀌는 배율, 1바퀴 마다 바뀌는 비료 보상 및 특수 발판을 수정하세요
+                <br>❓에서는 확정 +200 또는 정해진 확률에 따라 성장 비료를 획득 합니다
+                <br> 50개 획득: 5%, 100개 획득: 45%, 300개 획득: 45%, 1000개 획득: 5% (평균 기대값 +232.5으로 계산됩니다)
+                <b>비료 보상 수정</b>: 좌클릭(+100) / 우클릭(-100)<br>
+                <b>특수 발판 수정</b>: 클릭 시 [기본 → 큐브+1 → ⏪-2 → ⏪-3 → ⏩+3] 순환
             </p>
         </div>
     </div>
@@ -361,9 +366,14 @@
         if (!displayElem) return;
 
         if (i === 30) { displayElem.innerHTML = "❓"; return; }
-        if (tile.move > 0 && i === 10) { displayElem.innerHTML = "🚀+10"; return; }
-        if (tile.move < 0) { displayElem.innerHTML = `⏪${tile.move}`; } 
-        else {
+        if (tile.move > 0) {
+            displayElem.innerHTML = (i === 10 ? "🚀+10" : `⏩+${tile.move}`);
+            return;
+        }
+
+        if (tile.move < 0) {
+            displayElem.innerHTML = `⏪${tile.move}`;
+        } else {
             let txt = `+${tile.c}`;
             if (tile.cube > 0) txt += cubeIcon;
             displayElem.innerHTML = txt;
@@ -379,20 +389,26 @@
         } 
         else if (activeMode === 'special') {
             if (i === 30 || i === 10) return;
-            if (BOARD[i].cube === 0 && BOARD[i].move === 0) { BOARD[i].cube = 1; } 
-            else if (BOARD[i].cube === 1) { BOARD[i].cube = 0; BOARD[i].move = -2; } 
-            else if (BOARD[i].move === -2) { BOARD[i].move = -3; } 
-            else { BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 300; }
+            // 순환 로직: 일반 -> 큐브 -> -2 -> -3 -> +3 -> 일반
+            if (BOARD[i].cube === 0 && BOARD[i].move === 0) {
+                BOARD[i].cube = 1;
+            } else if (BOARD[i].cube === 1) {
+                BOARD[i].cube = 0; BOARD[i].move = -2;
+            } else if (BOARD[i].move === -2) {
+                BOARD[i].move = -3;
+            } else if (BOARD[i].move === -3) {
+                BOARD[i].move = 3;
+            } else {
+                BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 300;
+            }
             updateTileDisplay(i);
         } 
         else if (activeMode === 'multiplier') {
-            // 배율 설정 순환: 없음(0) -> x2(1) -> ÷2(2) -> x3(3)
             boardBuffs[i] = (boardBuffs[i] + 1) % 4;
             const tile = document.getElementById(`tile-${i}`);
             tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} ${i === currentStartPos ? 'is-start' : ''}`;
         }
         else {
-            // 기본 동작: 시작점 설정
             document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start'));
             currentStartPos = i;
             const tile = document.getElementById(`tile-${i}`);
@@ -421,15 +437,18 @@
                 pos += dice; 
                 while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                 let tile = BOARD[pos];
+                
+                // 이동 발판 효과 (🚀+10, ⏪-2, ⏪-3, ⏩+3 등)
                 if(tile.move !== 0) { 
                     pos += tile.move; 
                     while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                     tile = BOARD[pos]; 
                 }
-                let gain = (pos === 30) ? qVal : (tile.c || 0);
-                if (BOARD[pos].move !== 0 && pos !== 10) gain = 0;
                 
-                // 배율 적용
+                let gain = (pos === 30) ? qVal : (tile.c || 0);
+                // 이동 효과가 있는 발판 "자체"의 코인 획득은 없으므로 0 (🚀+10 발판 제외)
+                if (BOARD[pos].move !== 0 && pos !== 10) gain = 0;
+
                 if(boardBuffs[pos] === 1) gain *= 2; 
                 else if(boardBuffs[pos] === 2) gain = Math.floor(gain * 0.5); 
                 else if(boardBuffs[pos] === 3) gain *= 3;
