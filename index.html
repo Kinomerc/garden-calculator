@@ -315,8 +315,7 @@
                 <br><b>배율 수정</b>: 클릭 시 [x2 → ÷2 → x3] 순환
                 <br><b>비료 보상 수정</b>: 좌클릭(+100) / 우클릭(-100) / 특수발판 클릭 시 +100 
                 <br><b>특수 발판 수정</b>: 클릭 시 [기본 → 특수주사위+1 → 🔙-2 → 🔙-3 → 🔜+3] 순환
-                <br><b>계산 버튼을 누르면 최적의 경우의 수를 보여줍니다.
-		<br>1순위를 클릭하면 진이 해당 위치로 이동합니다
+                <br><b>계산 버튼을 누르면 최적의 경우의 수를 보여줍니다
             </p>
         </div>
     </div>
@@ -551,72 +550,40 @@ function handleTileClick(i, e) {
         };
         generatePerms(d);
 
-let results = perms.map(seq => {
+        let results = perms.map(seq => {
             let pos = currentStartPos, totalCoin = 0, totalCube = 0, history = [];
-            
             seq.forEach(dice => {
-                let lapBonus = 0;
-                let nextPos = pos + dice;
-
-                // 1. 주사위 이동으로 40번 칸 통과 또는 도착 체크
-                if (nextPos >= 40) {
-                    lapBonus += 500;
-                }
-
-                pos = nextPos;
-                while(pos > 40) pos -= 40; 
-                while(pos < 1) pos += 40;
-
+                pos += dice; 
+                while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                 let tile = BOARD[pos];
                 
-                // 2. 특수 발판(이동) 처리
                 if(tile.move !== 0) { 
-                    let movePos = pos + tile.move;
-                    
-                    // 특수 이동(🔜+3 등)으로 40번을 통과하게 될 경우 추가 보상
-                    if (movePos >= 40) {
-                        lapBonus += 500;
-                    }
-
-                    pos = movePos;
-                    while(pos > 40) pos -= 40; 
-                    while(pos < 1) pos += 40;
+                    pos += tile.move; 
+                    while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                     tile = BOARD[pos]; 
                 }
                 
-                // 3. 최종 도착한 칸의 보상 계산 (40번은 이미 lapBonus로 처리했으므로 제외)
-                let gain = 0;
-                if (pos !== 40) {
-                    gain = tile.is_q ? qVal : (tile.move !== 0 ? 0 : (tile.c || 0));
-                    
-                    // 배율 적용
-                    if(boardBuffs[pos] === 1) gain *= 2; 
-                    else if(boardBuffs[pos] === 2) gain = Math.floor(gain * 0.5); 
-                    else if(boardBuffs[pos] === 3) gain *= 3;
-                }
+                // 보상 계산 로직: ❓인 경우 qVal 사용, 이동 발판 위일 경우 0, 나머지는 c값
+                let gain = tile.is_q ? qVal : (tile.move !== 0 ? 0 : (tile.c || 0));
+
+                if(boardBuffs[pos] === 1) gain *= 2; 
+                else if(boardBuffs[pos] === 2) gain = Math.floor(gain * 0.5); 
+                else if(boardBuffs[pos] === 3) gain *= 3;
                 
-                let turnTotal = gain + lapBonus;
-                totalCoin += turnTotal; 
-                totalCube += (tile.cube || 0);
-                
-                // 히스토리에 이번 턴에 얻은 총 비료(이동보상 포함) 기록
-                history.push({ land: pos, gain: turnTotal });
+                totalCoin += gain; totalCube += (tile.cube || 0);
+                history.push({ land: pos, gain });
             });
             return { seq, totalCoin, totalCube, history };
         }).sort((a, b) => b.totalCoin - a.totalCoin || b.totalCube - a.totalCube);
+
         /* ... 이후 결과 출력 로직 동일 ... */
         const resDiv = document.getElementById('result');
         document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlight-tile'));
-let html = `<h4>최적 순서: ${results[0].seq.join(' → ')}</h4>`;
+        let html = `<h4>최적 순서: ${results[0].seq.join(' → ')}</h4>`;
         results.slice(0, 3).forEach((r, idx) => {
-            if(idx === 0) {
-                r.history.forEach(h => document.getElementById(`tile-${h.land}`).classList.add('highlight-tile'));
-                const lastPos = r.history[r.history.length - 1].land;
-                html += `<div class="best-card" onclick="moveToResult(${lastPos})" style="cursor:pointer;">`;
-            } else {
-                html += `<div class="route-item">`;
-            }
-            html += `<strong>[${idx+1}순위] ${r.seq.join(' → ')}</strong> | 💰${r.totalCoin.toLocaleString()} | <span style="color: purple;">⍰</span>${r.totalCube}개<br>
+            if(idx === 0) r.history.forEach(h => document.getElementById(`tile-${h.land}`).classList.add('highlight-tile'));
+            html += `<div class="${idx === 0 ? 'best-card' : 'route-item'}">
+                <strong>[${idx+1}순위] ${r.seq.join(' → ')}</strong> | 💰${r.totalCoin.toLocaleString()} | <span style="color: purple;">⍰</span>${r.totalCube}개<br>
                 <small>${r.history.map(h => `${h.land}번(+${h.gain})`).join(' → ')}</small>
             </div>`;
         });
@@ -624,37 +591,6 @@ let html = `<h4>최적 순서: ${results[0].seq.join(' → ')}</h4>`;
     }
 
 
-function moveToResult(lastPos) {
-        document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start', 'highlight-tile'));
-        currentStartPos = lastPos;
-        const tile = document.getElementById(`tile-${lastPos}`);
-        if (tile) {
-            tile.className = `tile ${BUFF_CLASSES[boardBuffs[lastPos]]} is-start`;
-        }
-        document.getElementById('start-val').innerText = lastPos + '번';
-
-        document.getElementById('d1').value = 1;
-        document.getElementById('d2').value = 1;
-        document.getElementById('d3').value = 1;
-
-        updateDiceLiveInfo();
-
-        document.getElementById('result').innerHTML = `
-            <p style="text-align:center; color:#7f8c8d; margin-top:20px; font-size:0.9rem;">
-                <b>주사위 눈 입력, ❓ 도달 시 보상 선택 후 🚩현재 위치를 마우스 클릭으로 정하세요
-		<br>현재 위치가 지정되면 빨간 테두리로 최대 이동 가능 거리가 표시됩니다. 
-                <br>
-                <br> 이후 턴마다 바뀌는 배율, 1바퀴 마다 바뀌는 비료 보상 및 특수 발판을 수정하세요</b>
-                <br>❓에서는 확정 +200 또는 아래 표시된 확률에 따라 성장 비료를 획득 합니다
-                <br> 50개 획득: 5%, 100개 획득: 45%, 300개 획득: 45%, 1000개 획득: 5% 
-                <br> (빨간도시락 선택시 여기선 평균 기대값 +232.5으로 계산됩니다)
-                <br>
-                <br><b>배율 수정</b>: 클릭 시 [x2 → ÷2 → x3] 순환
-                <br><b>비료 보상 수정</b>: 좌클릭(+100) / 우클릭(-100) / 특수발판 클릭 시 +100 
-                <br><b>특수 발판 수정</b>: 클릭 시 [기본 → 특수주사위+1 → 🔙-2 → 🔙-3 → 🔜+3] 순환
-                <br><b>계산 버튼을 누르면 최적의 경우의 수를 보여줍니다.
-            </p>`;
-    }
 
     window.onload = init;
 </script>
