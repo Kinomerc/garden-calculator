@@ -49,8 +49,7 @@
       }
 
       .tile:hover {
-        background-color: rgba(255, 0, 0, 0.2);
-        border: 2px solid white;
+        border: 2px solid black;
         z-index: 20;
         transform: scale(1.03);
       }
@@ -66,19 +65,23 @@
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
       }
 
-      .tile-reward {
+.tile-reward {
         position: absolute;
-        bottom: 0;
-        right: 2px;
-        font-size: 0.65rem;
-        font-weight: bold;
-        color: rgba(0, 0, 0, 0.8);
-        background: rgba(255, 255, 255, 0.6);
-        padding: 0px 2px;
-        border-radius: 2px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 0.9rem;
+        font-weight: 900;
+        line-height: 1.1; 
+        color: rgba(0, 0, 0, 0.9);
+        background: rgba(255, 255, 255, 0.75);
+        padding: 3px 4px;
+        border-radius: 4px;
         pointer-events: none;
-        min-width: 20px;
+        min-width: 32px;
         text-align: center;
+        white-space: nowrap;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
       }
 
       .buff-2 { background-color: rgba(52, 152, 219, 0.5) !important; border: 2.5px solid var(--primary) !important; }
@@ -269,12 +272,15 @@
 
         <div id="result">
             <p style="text-align:center; color:#7f8c8d; margin-top:20px; font-size:0.9rem;">
-                주사위 눈 입력, ❓ 도달 시 보상 선택 후 <b>🚩 시작점</b>을 마우스 클릭으로 정하세요
-                <br> 이후 턴마다 바뀌는 배율, 1바퀴 마다 바뀌는 비료 보상 및 특수 발판을 수정하세요
+                <b>주사위 눈 입력, ❓ 도달 시 보상 선택 후 <b>🚩 시작점</b>을 마우스 클릭으로 정하세요
+                <br> 이후 턴마다 바뀌는 배율, 1바퀴 마다 바뀌는 비료 보상 및 특수 발판을 수정하세요</b>
                 <br>❓에서는 확정 +200 또는 정해진 확률에 따라 성장 비료를 획득 합니다
                 <br> 50개 획득: 5%, 100개 획득: 45%, 300개 획득: 45%, 1000개 획득: 5% (평균 기대값 +232.5으로 계산됩니다)
-                <b>비료 보상 수정</b>: 좌클릭(+100) / 우클릭(-100)<br>
-                <b>특수 발판 수정</b>: 클릭 시 [기본 → 큐브+1 → ⏪-2 → ⏪-3 → ⏩+3] 순환
+                <br>
+                <br><b>배율 수정</b>: 클릭 시 [x2 → ÷2 → x3] 순환
+                <br><b>비료 보상 수정</b>: 좌클릭(+100) / 우클릭(-100)
+                <br><b>특수 발판 수정</b>: 클릭 시 [기본 → 큐브+1 → 🔙-2 → 🔙-3 → 🔜+3] 순환
+
             </p>
         </div>
     </div>
@@ -360,22 +366,34 @@
         document.getElementById('btn-edit-special').classList.toggle('active-mode', activeMode === 'special');
     }
 
-    function updateTileDisplay(i) {
+function updateTileDisplay(i) {
         const tile = BOARD[i];
         const displayElem = document.getElementById(`reward-text-${i}`);
         if (!displayElem) return;
 
-        if (i === 30) { displayElem.innerHTML = "❓"; return; }
-        if (tile.move > 0) {
-            displayElem.innerHTML = (i === 10 ? "🚀+10" : `⏩+${tile.move}`);
+        // 30번 ❓ 발판
+        if (i === 30) { 
+            displayElem.innerHTML = "❓"; 
+            return; 
+        }
+
+        // 이동 발판 (🔜, 🔙, 🚀)
+        if (tile.move !== 0) {
+            let icon = "";
+            let val = "";
+            if (i === 10) { icon = "🚀"; val = "+10"; }
+            else if (tile.move > 0) { icon = "🔜"; val = `+${tile.move}`; }
+            else { icon = "🔙"; val = `${tile.move}`; }
+            
+            displayElem.innerHTML = `${val}<br>${icon}`;
             return;
         }
 
-        if (tile.move < 0) {
-            displayElem.innerHTML = `⏪${tile.move}`;
+        // 일반 보상 발판 (⍰ 포함)
+        let txt = `+${tile.c}`;
+        if (tile.cube > 0) {
+            displayElem.innerHTML = `${txt}<br>${cubeIcon}`;
         } else {
-            let txt = `+${tile.c}`;
-            if (tile.cube > 0) txt += cubeIcon;
             displayElem.innerHTML = txt;
         }
     }
@@ -438,7 +456,7 @@
                 while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                 let tile = BOARD[pos];
                 
-                // 이동 발판 효과 (🚀+10, ⏪-2, ⏪-3, ⏩+3 등)
+                // 이동 발판 효과 (🚀+10, 🔙-2, 🔙-3, 🔜+3 등)
                 if(tile.move !== 0) { 
                     pos += tile.move; 
                     while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
@@ -465,7 +483,7 @@
         results.slice(0, 3).forEach((r, idx) => {
             if(idx === 0) r.history.forEach(h => document.getElementById(`tile-${h.land}`).classList.add('highlight-tile'));
             html += `<div class="${idx === 0 ? 'best-card' : 'route-item'}">
-                <strong>[${idx+1}순위] ${r.seq.join(' → ')}</strong> | 💰${r.totalCoin.toLocaleString()} | 🟣${r.totalCube}개<br>
+                <strong>[${idx+1}순위] ${r.seq.join(' → ')}</strong> | 💰${r.totalCoin.toLocaleString()} | <span style="color: purple;">⍰</span>${r.totalCube}개<br>
                 <small>${r.history.map(h => `${h.land}번(+${h.gain})`).join(' → ')}</small>
             </div>`;
         });
