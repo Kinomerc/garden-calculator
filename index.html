@@ -12,6 +12,7 @@
         --danger: #e74c3c;
         --accent: #9b59b6;
         --special: #2c3e50;
+        --multiplier: #1abc9c;
       }
 
       body {
@@ -76,6 +77,8 @@
         padding: 0px 2px;
         border-radius: 2px;
         pointer-events: none;
+        min-width: 20px;
+        text-align: center;
       }
 
       .buff-2 { background-color: rgba(52, 152, 219, 0.5) !important; border: 2.5px solid var(--primary) !important; }
@@ -175,18 +178,7 @@
         font-size: 1.1em;
       }
 
-      #btn-set-start {
-        background: #ff9f43;
-        color: white;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-      }
-
       .edit-btn {
-        background: #9b59b6;
         color: white;
         border: none;
         padding: 8px 12px;
@@ -196,6 +188,8 @@
         font-size: 0.85em;
       }
 
+      #btn-edit-multiplier { background: var(--multiplier); }
+      #btn-edit-reward { background: var(--accent); }
       #btn-edit-special { background: var(--special); }
 
       .active-mode {
@@ -263,9 +257,9 @@
                     <span style="font-weight:bold; font-size:0.9em; display:flex; align-items:center; white-space:nowrap;">
                         <span class="jin-icon"></span>위치: <span id="start-val" style="color:var(--danger); margin-left:3px;">미지정</span>
                     </span>
-                    <button id="btn-set-start" onclick="toggleMode('set')" style="margin-left: 10px;">시작점 설정</button>
                 </div>
                 <div style="display:flex; align-items:center; gap:5px;">
+                    <button id="btn-edit-multiplier" class="edit-btn" onclick="toggleMode('multiplier')">배율 설정</button>
                     <button id="btn-edit-reward" class="edit-btn" onclick="toggleMode('reward')">비료 보상 수정</button>
                     <button id="btn-edit-special" class="edit-btn" onclick="toggleMode('special')">특수 발판 수정</button>
                     <button class="calc-btn" onclick="calculate()">계산</button>
@@ -274,13 +268,8 @@
         </div>
 
         <div id="result">
-            <p style="text-align:center; color:#7f8c8d; margin-top:15px; font-size:0.85rem;">
-                주사위 눈 입력, ❓ 도달 시 보상 선택 후 <b>🚩 시작점</b>을 설정하고 계산하세요. 
-                <br>
-                <br>❓에서는 확정 +200 또는 정해진 확률에 따라 성장 비료를 획득 합니다
-                <br> 50개 획득: 5%, 100개 획득: 45%, 300개 획득: 45%, 1000개 획득: 5% (평균 기대값 +232.5으로 계산됩니다)
-                <b>비료 보상 수정</b>: 좌클릭(+100) / 우클릭(-100)<br>
-                <b>특수 발판 수정</b>: 클릭 시 [기본 → 특수주사위 +1 → ⏪-2 → ⏪-3] 순환
+            <p style="text-align:center; color:#7f8c8d; margin-top:20px; font-size:0.9rem;">
+                수정 모드가 아닐 때 발판을 클릭하면 🚩 <b>시작점</b>이 설정됩니다.
             </p>
         </div>
     </div>
@@ -288,30 +277,19 @@
 
 <script>
     const cubeIcon = '<span style="color: purple;">⍰</span>';
+    let BOARD = Array.from({ length: 41 }, () => ({ c: 300, cube: 0, move: 0 }));
 
-    // BOARD 초기 데이터
-    const BOARD = Array.from({ length: 41 }, (_, i) => ({
-        c: 300, 
-        cube: 0, 
-        move: 0, 
-        display: "+300"
-    }));
-
-    // 기본 보드 값 세팅 (사용자 제공 데이터 기반)
     const initialData = {
-        1: {c:300}, 2: {c:400}, 3: {c:100}, 4: {c:300}, 5: {c:300}, 6: {c:100}, 7: {c:400}, 8: {c:600}, 9: {c:600}, 10: {move:10, display:"🚀+10"},
+        1: {c:300}, 2: {c:400}, 3: {c:100}, 4: {c:300}, 5: {c:300}, 6: {c:100}, 7: {c:400}, 8: {c:600}, 9: {c:600}, 10: {move:10},
         11: {c:300}, 12: {c:100}, 13: {c:400}, 14: {c:100}, 15: {move:-3}, 16: {c:300}, 17: {c:400}, 18: {c:100}, 19: {c:300}, 20: {c:400, cube:1},
-        21: {c:300}, 22: {c:300}, 23: {c:300}, 24: {c:400, cube:1}, 25: {c:600}, 26: {move:-2}, 27: {c:400}, 28: {c:600}, 29: {c:300}, 30: {c:0, display:"❓"},
+        21: {c:300}, 22: {c:300}, 23: {c:300}, 24: {c:400, cube:1}, 25: {c:600}, 26: {move:-2}, 27: {c:400}, 28: {c:600}, 29: {c:300}, 30: {c:0},
         31: {c:300}, 32: {c:600}, 33: {c:400}, 34: {c:400}, 35: {c:300}, 36: {c:300}, 37: {c:300}, 38: {c:100}, 39: {c:400}, 40: {c:500}
     };
 
-    Object.keys(initialData).forEach(idx => {
-        Object.assign(BOARD[idx], initialData[idx]);
-    });
+    Object.keys(initialData).forEach(idx => Object.assign(BOARD[idx], initialData[idx]));
 
     let currentStartPos = 0;
-    let activeMode = null; // 'set', 'reward', 'special'
-    
+    let activeMode = null; 
     const boardBuffs = new Int8Array(41).fill(0);
     const BUFF_CLASSES = ['no-buff', 'buff-2', 'buff-05', 'buff-3'];
     const TILE_POSITIONS = new Array(41);
@@ -345,20 +323,36 @@
             rewardLabel.id = `reward-text-${i}`;
             tile.appendChild(rewardLabel);
             
-            updateTileDisplay(i);
             container.appendChild(tile);
+            updateTileDisplay(i); 
         }
+        setupDiceInputs();
+    }
+
+    function setupDiceInputs() {
+        ['d1', 'd2', 'd3'].forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', function() {
+                let valStr = this.value;
+                if (valStr === "-" || valStr === "") return;
+                let val = parseInt(valStr);
+                if (isNaN(val)) { this.value = ""; return; }
+                if (val > 18) this.value = 18;
+                else if (val < -18) this.value = -18;
+                else this.value = val;
+            });
+            input.addEventListener('focus', function() { this.select(); });
+            input.addEventListener('mouseup', function(e) { e.preventDefault(); this.select(); });
+            input.addEventListener('blur', function() { if (this.value === "" || this.value === "-") this.value = 1; });
+        });
     }
 
     function toggleMode(mode) {
         if (activeMode === mode) activeMode = null;
         else activeMode = mode;
-
-        document.getElementById('btn-set-start').classList.toggle('active-mode', activeMode === 'set');
+        document.getElementById('btn-edit-multiplier').classList.toggle('active-mode', activeMode === 'multiplier');
         document.getElementById('btn-edit-reward').classList.toggle('active-mode', activeMode === 'reward');
         document.getElementById('btn-edit-special').classList.toggle('active-mode', activeMode === 'special');
-        
-        document.getElementById('btn-set-start').innerText = (activeMode === 'set') ? '발판 클릭' : '시작점 설정';
     }
 
     function updateTileDisplay(i) {
@@ -368,10 +362,8 @@
 
         if (i === 30) { displayElem.innerHTML = "❓"; return; }
         if (tile.move > 0 && i === 10) { displayElem.innerHTML = "🚀+10"; return; }
-
-        if (tile.move < 0) {
-            displayElem.innerHTML = `⏪${tile.move}`;
-        } else {
+        if (tile.move < 0) { displayElem.innerHTML = `⏪${tile.move}`; } 
+        else {
             let txt = `+${tile.c}`;
             if (tile.cube > 0) txt += cubeIcon;
             displayElem.innerHTML = txt;
@@ -380,39 +372,33 @@
 
     function handleTileClick(i, e) {
         if (activeMode === 'reward') {
-            // 금액 수정 모드 (특수 발판 제외)
             if (BOARD[i].move !== 0 || i === 30) return;
             if (e.button === 0) BOARD[i].c = Math.min(600, BOARD[i].c + 100);
             else if (e.button === 2) BOARD[i].c = Math.max(100, BOARD[i].c - 100);
             updateTileDisplay(i);
         } 
         else if (activeMode === 'special') {
-            // 특수 수정 모드 (순환: 기본 -> Cube -> -2 -> -3)
             if (i === 30 || i === 10) return;
-
-            if (BOARD[i].cube === 0 && BOARD[i].move === 0) {
-                BOARD[i].cube = 1;
-            } else if (BOARD[i].cube === 1) {
-                BOARD[i].cube = 0; BOARD[i].move = -2;
-            } else if (BOARD[i].move === -2) {
-                BOARD[i].move = -3;
-            } else {
-                BOARD[i].move = 0; BOARD[i].cube = 0;
-            }
+            if (BOARD[i].cube === 0 && BOARD[i].move === 0) { BOARD[i].cube = 1; } 
+            else if (BOARD[i].cube === 1) { BOARD[i].cube = 0; BOARD[i].move = -2; } 
+            else if (BOARD[i].move === -2) { BOARD[i].move = -3; } 
+            else { BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 300; }
             updateTileDisplay(i);
         } 
-        else if (activeMode === 'set') {
-            document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start'));
-            currentStartPos = i;
-            document.getElementById(`tile-${i}`).classList.add('is-start');
-            document.getElementById('start-val').innerText = i + '번';
-            toggleMode('set');
-        } 
-        else {
-            // 버프 설정 모드
+        else if (activeMode === 'multiplier') {
+            // 배율 설정 순환: 없음(0) -> x2(1) -> ÷2(2) -> x3(3)
             boardBuffs[i] = (boardBuffs[i] + 1) % 4;
             const tile = document.getElementById(`tile-${i}`);
             tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} ${i === currentStartPos ? 'is-start' : ''}`;
+        }
+        else {
+            // 기본 동작: 시작점 설정
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start'));
+            currentStartPos = i;
+            const tile = document.getElementById(`tile-${i}`);
+            tile.classList.add('is-start');
+            tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} is-start`;
+            document.getElementById('start-val').innerText = i + '번';
         }
     }
 
@@ -435,24 +421,20 @@
                 pos += dice; 
                 while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                 let tile = BOARD[pos];
-                
-                // 이동 효과 처리
                 if(tile.move !== 0) { 
                     pos += tile.move; 
                     while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                     tile = BOARD[pos]; 
                 }
-                
                 let gain = (pos === 30) ? qVal : (tile.c || 0);
-                // 이동 발판 자체는 코인이 0으로 계산됨
                 if (BOARD[pos].move !== 0 && pos !== 10) gain = 0;
-
+                
+                // 배율 적용
                 if(boardBuffs[pos] === 1) gain *= 2; 
                 else if(boardBuffs[pos] === 2) gain = Math.floor(gain * 0.5); 
                 else if(boardBuffs[pos] === 3) gain *= 3;
                 
-                totalCoin += gain; 
-                totalCube += (tile.cube || 0);
+                totalCoin += gain; totalCube += (tile.cube || 0);
                 history.push({ land: pos, gain });
             });
             return { seq, totalCoin, totalCube, history };
