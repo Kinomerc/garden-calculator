@@ -190,7 +190,16 @@
         font-weight: bold;
         font-size: 1.1em;
       }
-
+		
+       .dice-area input::-webkit-outer-spin-button,
+       .dice-area input::-webkit-inner-spin-button {
+         -webkit-appearance: none;
+         margin: 0;
+       }
+       .dice-area input[type=number] {
+         -moz-appearance: textfield;
+       }
+		
       .edit-btn {
         color: white;
         border: none;
