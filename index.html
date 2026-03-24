@@ -22,11 +22,9 @@ body {
   flex-direction: column; /* 세로 배치 추가 */
   justify-content: flex-start; /* 상단 정렬로 변경 (로그가 길어질 수 있으므로) */
   align-items: center;
-  min-height: 100vh;
   background-color: #f0f2f5;
-  margin: 0;
-  padding: 40px 20px; /* 상하 여백 확보 */
-  gap: 30px; /* 보드와 로그 사이의 간격 */
+  padding: 30px 0px; /* 상하 여백 확보 */
+  gap: 15px; /* 보드와 로그 사이의 간격 */
 }
 
 /* 2. 업데이트 로그 컨테이너 스타일 */
@@ -60,24 +58,6 @@ body {
   overflow-y: auto;
 }
 
-.update-log-item {
-  display: flex;
-  padding: 10px 0;
-  border-bottom: 1px solid #f9f9f9;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.log-date {
-  min-width: 110px;
-  font-weight: bold;
-  color: var(--primary);
-}
-
-.log-content {
-  color: #444;
-}
-
 /* 스크롤바 커스텀 */
 .update-log-list::-webkit-scrollbar {
   width: 6px;
@@ -97,7 +77,7 @@ body {
         height: 726px;
         background-size: 100% 100%;
         border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         overflow: hidden;
       }
 
@@ -327,7 +307,6 @@ body {
 
 <div class="board-container">
     <div id="tile-overlays"></div>
-
     <div class="center-control">
         <div class="top-row">
             <div class="sub-row">
@@ -337,6 +316,10 @@ body {
                         <input type="number" id="d1" min="-18" max="18">
                         <input type="number" id="d2" min="-18" max="18">
                         <input type="number" id="d3" min="-18" max="18">
+<label style="font-size: 0.85rem; font-weight: bold; margin-left: 10px; cursor: pointer; color: var(--accent); display: inline-flex; align-items: center;">
+        <span>도착칸 x2</span>
+        <input type="checkbox" id="double-last" style="margin-left: -10px; position: relative; z-index: 1;">
+    </label>
                     </div>
                 </div>
                 <div class="q-option">
@@ -623,59 +606,52 @@ function handleTileClick(i, e) {
         };
         generatePerms(d);
 
+   const isDoubleLast = document.getElementById('double-last').checked; // 체크박스 상태 확인
+
         let results = perms.map(seq => {
             let pos = currentStartPos, totalCoin = 0, totalCube = 0, history = [];
             
-            seq.forEach(dice => {
+            seq.forEach((dice, index) => { // index 추가
                 let lapBonus = 0;
                 let nextPos = pos + dice;
 
-                // --- [체크포인트 통과 로직] ---
-                // 1. 정방향: 40번 미만에서 40번 이상으로 갈 때 (예: 39 -> 41)
-                if (dice > 0 && pos < 40 && nextPos >= 40) {
-                    lapBonus += 500;
-                }
-                // 2. 역방향: 1번 이상에서 0번 이하(40번 쪽)로 갈 때 (예: 3 -> -1)
-                else if (dice < 0 && pos >= 1 && nextPos <= 0) {
-                    lapBonus += 500;
-                }
+                // 1. 체크포인트 통과 체크 (보너스 500점)
+                if (dice > 0 && pos < 40 && nextPos >= 40) lapBonus += 500;
+                else if (dice < 0 && pos >= 1 && nextPos <= 0) lapBonus += 500;
 
                 pos = nextPos;
-                while(pos > 40) pos -= 40; 
-                while(pos < 1) pos += 40;
+                while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
 
                 let tile = BOARD[pos];
                 
-                // 특수 발판(🔜, 🔙, 🚀) 이동 처리
+                // 2. 특수 발판 이동 처리
                 if(tile.move !== 0) { 
                     let moveNextPos = pos + tile.move;
-                    
-                    // 특수 이동 시 정방향 통과 체크
-                    if (tile.move > 0 && pos < 40 && moveNextPos >= 40) {
-                        lapBonus += 500;
-                    }
-                    // 특수 이동 시 역방향 통과 체크
-                    else if (tile.move < 0 && pos >= 1 && moveNextPos <= 0) {
-                        lapBonus += 500;
-                    }
+                    if (tile.move > 0 && pos < 40 && moveNextPos >= 40) lapBonus += 500;
+                    else if (tile.move < 0 && pos >= 1 && moveNextPos <= 0) lapBonus += 500;
 
                     pos = moveNextPos;
-                    while(pos > 40) pos -= 40; 
-                    while(pos < 1) pos += 40;
+                    while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                     tile = BOARD[pos]; 
                 }
                 
-                // 최종 도착 칸 보상 (40번은 위에서 lapBonus로 처리했으므로 제외)
+                // 3. 보상 계산
                 let gain = 0;
                 if (pos !== 40) {
                     gain = tile.is_q ? qVal : (tile.move !== 0 ? 0 : (tile.c || 0));
                     
-                    // 배율 적용
+                    // 기본 배율 적용
                     if(boardBuffs[pos] === 1) gain *= 2; 
                     else if(boardBuffs[pos] === 2) gain = Math.floor(gain * 0.5); 
                     else if(boardBuffs[pos] === 3) gain *= 3;
                 }
                 
+                // [핵심 추가] 체크박스가 켜져 있고, 현재가 마지막(세 번째) 주사위일 때 보상 2배
+                // (경계선 통과 보너스 500점은 보통 배율 영향을 안 받으므로 gain에만 적용합니다)
+                if (isDoubleLast && index === 2) {
+                    gain *= 2;
+                }
+
                 let turnTotal = gain + lapBonus;
                 totalCoin += turnTotal; 
                 totalCube += (tile.cube || 0);
