@@ -15,21 +15,19 @@
         --multiplier: #1abc9c;
       }
 
-/* 1. body 스타일 수정: 보드와 로그를 세로로 배치하고 간격을 둡니다. */
 body {
   font-family: 'Pretendard', sans-serif;
   display: flex;
-  flex-direction: column; /* 세로 배치 추가 */
-  justify-content: flex-start; /* 상단 정렬로 변경 (로그가 길어질 수 있으므로) */
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
   background-color: #f0f2f5;
-  padding: 30px 0px; /* 상하 여백 확보 */
-  gap: 15px; /* 보드와 로그 사이의 간격 */
+  padding: 30px 0px;
+  gap: 15px;
 }
 
-/* 2. 업데이트 로그 컨테이너 스타일 */
 .update-log-container {
-  width: 1001px; /* 보드 너비와 동일하게 설정 */
+  width: 1001px;
   background: white;
   border-radius: 15px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
@@ -54,22 +52,14 @@ body {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 250px; /* 로그가 많아지면 스크롤 발생 */
+  max-height: 250px;
   overflow-y: auto;
 }
 
-/* 스크롤바 커스텀 */
-.update-log-list::-webkit-scrollbar {
-  width: 6px;
-}
-.update-log-list::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 10px;
-}
+.update-log-list::-webkit-scrollbar { width: 6px; }
+.update-log-list::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
 
-      body.edit-active {
-        background-color: #FFFFFF !important; /* 전체 배경을 하얀 회색톤으로 */
-      }
+      body.edit-active { background-color: #FFFFFF !important; }
 
       .board-container {
         position: relative;
@@ -93,10 +83,12 @@ body {
         background-color: rgba(255, 255, 255, 0.05);
       }
 
-      .tile:hover {
-        border: 2px solid black;
-        z-index: 20;
-        transform: scale(1.03);
+      .tile:hover { border: 2px solid black; z-index: 20; transform: scale(1.03); }
+
+      /* 40번 칸 특수 스타일 (연한 보라색 배경) */
+      #tile-40 {
+        background-color: rgba(235, 209, 255, 0.8) !important;
+        border: 2px solid var(--accent);
       }
 
       .tile-id {
@@ -141,12 +133,7 @@ body {
         font-size: 0.85rem; 
         font-weight: 900;
         color: white;
-        text-shadow: 
-          -1px -1px 0 #000,  
-           1px -1px 0 #000,
-          -1px  1px 0 #000,
-           1px  1px 0 #000,
-           1px  1px 4px rgba(0, 0, 0, 0.9);
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 1px 1px 4px rgba(0, 0, 0, 0.9);
         opacity: 0;
         pointer-events: none;
         z-index: 5;
@@ -231,7 +218,7 @@ body {
         font-weight: bold;
         font-size: 1.1em;
       }
-		
+        
        .dice-area input::-webkit-outer-spin-button,
        .dice-area input::-webkit-inner-spin-button {
          -webkit-appearance: none;
@@ -240,7 +227,7 @@ body {
        .dice-area input[type=number] {
          -moz-appearance: textfield;
        }
-		
+        
       .edit-btn {
         color: white;
         border: none;
@@ -291,12 +278,6 @@ body {
         transition: all 0.2s ease;
       }
 
-      @keyframes pulse {
-        0% { transform: translate(-50%, -50%) scale(1); }
-        50% { transform: translate(-50%, -50%) scale(1.1); }
-        100% { transform: translate(-50%, -50%) scale(1); }
-      }
-
       #result { flex: 1; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
       .best-card { background: #e8f5e9; border: 2px solid var(--success); padding: 12px; border-radius: 8px; margin-bottom: 8px; }
       .route-item { background: #f8f9fa; border: 1px solid #eee; padding: 8px; border-radius: 6px; margin-bottom: 5px; }
@@ -316,10 +297,10 @@ body {
                         <input type="number" id="d1" min="-18" max="18">
                         <input type="number" id="d2" min="-18" max="18">
                         <input type="number" id="d3" min="-18" max="18">
-<label style="font-size: 0.85rem; font-weight: bold; margin-left: 10px; cursor: pointer; color: var(--accent); display: inline-flex; align-items: center;">
-        <span>도착칸 x2</span>
-        <input type="checkbox" id="double-last" style="margin-left: -10px; position: relative; z-index: 1;">
-    </label>
+                        <label style="font-size: 0.85rem; font-weight: bold; margin-left: 10px; cursor: pointer; color: var(--accent); display: inline-flex; align-items: center;">
+                            <span>도착칸 x2</span>
+                            <input type="checkbox" id="double-last" style="margin-left: -10px; position: relative; z-index: 1;">
+                        </label>
                     </div>
                 </div>
                 <div class="q-option">
@@ -360,7 +341,6 @@ body {
                 <br>❓에서는 확정 +200 또는 아래 표시된 확률에 따라 성장 비료를 획득 합니다
                 <br>50개 획득: 5%, 100개 획득: 45%, 300개 획득: 45%, 1000개 획득: 5% 
                 <br>(빨간도시락 선택시 여기선 평균 기대값 +232.5으로 계산됩니다)
-                <br>
             </p>
         </div>
     </div>
@@ -377,11 +357,9 @@ body {
     </ul>
 </div>
 
-
-
 <script>
     const cubeIcon = '<span style="color: purple;">⍰</span>';
-let BOARD = Array.from({ length: 41 }, () => ({ c: 300, cube: 0, move: 0, is_q: false }));
+    let BOARD = Array.from({ length: 41 }, () => ({ c: 300, cube: 0, move: 0, is_q: false }));
 
     const initialData = {
         1: {c:300}, 2: {c:400}, 3: {c:100}, 4: {c:300}, 5: {c:300}, 6: {c:100}, 7: {c:400}, 8: {c:600}, 9: {c:600}, 10: {move:10},
@@ -433,27 +411,19 @@ let BOARD = Array.from({ length: 41 }, () => ({ c: 300, cube: 0, move: 0, is_q: 
         setupDiceInputs();
     }
 
-function setupDiceInputs() {
+    function setupDiceInputs() {
         ['d1', 'd2', 'd3'].forEach(id => {
             const input = document.getElementById(id);
             input.addEventListener('input', function() {
                 let valStr = this.value;
                 if (valStr === "-" || valStr === "") return;
                 let val = parseInt(valStr);
-                
-                // 기존 숫자 제한 로직 (유지)
                 if (val > 18) this.value = 18;
                 else if (val < -18) this.value = -18;
                 else this.value = val;
-
-                // [추가] 값이 바뀔 때마다 실시간 정보 갱신
                 updateDiceLiveInfo(); 
             });
-            
             input.addEventListener('focus', function() { this.select(); });
-            input.addEventListener('mouseup', function(e) { e.preventDefault(); this.select(); });
-            
-            // [추가] 포커스를 잃었을 때도 한번 더 갱신 (빈 칸 방지용)
             input.addEventListener('blur', function() { 
                 if (this.value === "" || this.value === "-") this.value = 1;
                 updateDiceLiveInfo();
@@ -461,143 +431,97 @@ function setupDiceInputs() {
         });
     }
 
-function toggleMode(mode) {
+    function toggleMode(mode) {
         if (activeMode === mode) activeMode = null;
         else activeMode = mode;
-
-        // activeMode가 null이 아니면(즉, 어떤 모드라도 켜져 있으면) body에 클래스 추가
         document.body.classList.toggle('edit-active', activeMode !== null);
-
         document.getElementById('btn-edit-multiplier').classList.toggle('active-mode', activeMode === 'multiplier');
         document.getElementById('btn-edit-reward').classList.toggle('active-mode', activeMode === 'reward');
         document.getElementById('btn-edit-special').classList.toggle('active-mode', activeMode === 'special');
     }
 
-// 주사위 합계(음수 제외) 및 도착 예정지 실시간 업데이트 함수
-function updateDiceLiveInfo() {
-    const d1 = parseInt(document.getElementById('d1').value) || 0;
-    const d2 = parseInt(document.getElementById('d2').value) || 0;
-    const d3 = parseInt(document.getElementById('d3').value) || 0;
-
-    // [수정] 음수는 제외하고 0보다 큰 양수만 합산
-    const sum = (d1 > 0 ? d1 : 0) + (d2 > 0 ? d2 : 0) + (d3 > 0 ? d3 : 0);
-
-    // 1. 기존에 강조되어 있던 모든 발판의 빨간 테두리 제거
-    document.querySelectorAll('.target-tile').forEach(t => t.classList.remove('target-tile'));
-
-    // 2. 시작 위치가 지정되어 있을 때만 새 도착지 계산
-    if (currentStartPos !== 0) {
-        let target = currentStartPos + sum;
-        
-        // 1~40 순환 처리
-        while (target > 40) target -= 40;
-        while (target < 1) target += 40;
-        
-        // 3. 해당 발판에 클래스 추가
-        const targetElem = document.getElementById(`tile-${target}`);
-        if (targetElem) {
-            targetElem.classList.add('target-tile');
+    function updateDiceLiveInfo() {
+        const d1 = parseInt(document.getElementById('d1').value) || 0;
+        const d2 = parseInt(document.getElementById('d2').value) || 0;
+        const d3 = parseInt(document.getElementById('d3').value) || 0;
+        const sum = (d1 > 0 ? d1 : 0) + (d2 > 0 ? d2 : 0) + (d3 > 0 ? d3 : 0);
+        document.querySelectorAll('.target-tile').forEach(t => t.classList.remove('target-tile'));
+        if (currentStartPos !== 0) {
+            let target = currentStartPos + sum;
+            while (target > 40) target -= 40;
+            while (target < 1) target += 40;
+            const targetElem = document.getElementById(`tile-${target}`);
+            if (targetElem) targetElem.classList.add('target-tile');
         }
     }
-}
 
-
-function updateTileDisplay(i) {
+    function updateTileDisplay(i) {
         const tile = BOARD[i];
         const displayElem = document.getElementById(`reward-text-${i}`);
         if (!displayElem) return;
-
-        // 30번 ❓ 발판
-        if (i === 30) { 
-            displayElem.innerHTML = "❓"; 
-            return; 
-        }
-
-// 10번 및 이동 발판
+        if (i === 30) { displayElem.innerHTML = "❓"; return; }
         if (tile.move !== 0) {
             let icon = (i === 10) ? "🚀" : (tile.move > 0 ? "🔜" : "🔙");
             let val = (tile.move > 0) ? `+${tile.move}` : `${tile.move}`;
             displayElem.innerHTML = `${val}<br>${icon}`;
             return;
         }
-
-        // 일반 보상 발판 (40번 포함)
         let txt = `+${tile.c}`;
-        if (tile.cube > 0) {
-            displayElem.innerHTML = `${txt}<br>${cubeIcon}`;
-        } else {
-            displayElem.innerHTML = txt;
-        }
+        if (tile.cube > 0) displayElem.innerHTML = `${txt}<br>${cubeIcon}`;
+        else displayElem.innerHTML = txt;
     }
 
-
-function handleTileClick(i, e) {
-    // 30번(❓)과 40번(500)은 보상 및 특수 발판 수정 모드에서 차단
-    if (i === 30 || i === 40) {
-        if (activeMode === 'reward' || activeMode === 'special') return;
-    }
-
-    if (activeMode === 'reward') {
-        if (i === 10) {
-            BOARD[i].move = 0; BOARD[i].is_q = false; BOARD[i].cube = 0; BOARD[i].c = 100;
-        } else {
-            if (BOARD[i].move !== 0) {
-                BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 100;
-            } else {
-                if (e.button === 0) BOARD[i].c = (BOARD[i].c >= 600) ? 100 : BOARD[i].c + 100;
-                else if (e.button === 2) BOARD[i].c = (BOARD[i].c <= 100) ? 600 : BOARD[i].c - 100;
+    function handleTileClick(i, e) {
+        if (i === 30 || i === 40) { if (activeMode === 'reward' || activeMode === 'special') return; }
+        if (activeMode === 'reward') {
+            if (i === 10) { BOARD[i].move = 0; BOARD[i].is_q = false; BOARD[i].cube = 0; BOARD[i].c = 100; } 
+            else {
+                if (BOARD[i].move !== 0) { BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 100; } 
+                else {
+                    if (e.button === 0) BOARD[i].c = (BOARD[i].c >= 600) ? 100 : BOARD[i].c + 100;
+                    else if (e.button === 2) BOARD[i].c = (BOARD[i].c <= 100) ? 600 : BOARD[i].c - 100;
+                }
             }
-        }
-        updateTileDisplay(i);
-    } 
-    else if (activeMode === 'special') {
-        if (i === 10) {
-            if (BOARD[i].move === 10) { BOARD[i].move = 0; BOARD[i].c = 100; } 
-            else { BOARD[i].move = 10; BOARD[i].c = 0; }
+            updateTileDisplay(i);
+        } else if (activeMode === 'special') {
+            if (i === 10) {
+                if (BOARD[i].move === 10) { BOARD[i].move = 0; BOARD[i].c = 100; } 
+                else { BOARD[i].move = 10; BOARD[i].c = 0; }
+            } else {
+                if (BOARD[i].cube === 0 && BOARD[i].move === 0) BOARD[i].cube = 1;
+                else if (BOARD[i].cube === 1) BOARD[i].cube = 0, BOARD[i].move = -2;
+                else if (BOARD[i].move === -2) BOARD[i].move = -3;
+                else if (BOARD[i].move === -3) BOARD[i].move = 3;
+                else { BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 100; }
+            }
+            if (BOARD[i].move !== 0 || BOARD[i].is_q) {
+                boardBuffs[i] = 0;
+                const tileElem = document.getElementById(`tile-${i}`);
+                tileElem.className = `tile no-buff ${i === currentStartPos ? 'is-start' : ''}`;
+            }
+            updateTileDisplay(i);
+        } else if (activeMode === 'multiplier') {
+            if (BOARD[i].move !== 0 || BOARD[i].is_q) return;
+            boardBuffs[i] = (boardBuffs[i] + 1) % 4;
+            const tile = document.getElementById(`tile-${i}`);
+            tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} ${i === currentStartPos ? 'is-start' : ''}`;
         } else {
-            if (BOARD[i].cube === 0 && BOARD[i].move === 0) { BOARD[i].cube = 1; } 
-            else if (BOARD[i].cube === 1) { BOARD[i].cube = 0; BOARD[i].move = -2; } 
-            else if (BOARD[i].move === -2) { BOARD[i].move = -3; } 
-            else if (BOARD[i].move === -3) { BOARD[i].move = 3; } 
-            else { BOARD[i].move = 0; BOARD[i].cube = 0; BOARD[i].c = 100; }
-        }
-        
-        // [추가] 특수 발판으로 변경될 때 해당 칸의 배율을 자동으로 제거
-        if (BOARD[i].move !== 0 || BOARD[i].is_q) {
-            boardBuffs[i] = 0;
-            const tileElem = document.getElementById(`tile-${i}`);
-            tileElem.className = `tile no-buff ${i === currentStartPos ? 'is-start' : ''}`;
-        }
-        updateTileDisplay(i);
-    } 
-    else if (activeMode === 'multiplier') {
-        // [수정] 이동 발판(move != 0)이나 ❓(is_q) 발판은 배율 설정을 막음
-        if (BOARD[i].move !== 0 || BOARD[i].is_q) return;
-
-        boardBuffs[i] = (boardBuffs[i] + 1) % 4;
-        const tile = document.getElementById(`tile-${i}`);
-        tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} ${i === currentStartPos ? 'is-start' : ''}`;
-    }
-    else {
             document.querySelectorAll('.tile').forEach(t => t.classList.remove('is-start'));
             currentStartPos = i;
             const tile = document.getElementById(`tile-${i}`);
             tile.classList.add('is-start');
             tile.className = `tile ${BUFF_CLASSES[boardBuffs[i]]} is-start`;
             document.getElementById('start-val').innerText = i + '번';
-
-            // [추가] 시작 위치가 바뀌었으므로 도착 예정지도 다시 계산
             updateDiceLiveInfo();
+        }
     }
-}
-
-
 
     function calculate() {
         const d = [parseInt(document.getElementById('d1').value), parseInt(document.getElementById('d2').value), parseInt(document.getElementById('d3').value)];
         if(d.some(isNaN)) return alert("주사위 값을 입력하세요.");
         if(currentStartPos === 0) return alert("현재 위치를 설정해주세요.");
         const qVal = parseFloat(document.getElementById('q-mode').value);
+        const isDoubleLast = document.getElementById('double-last').checked;
 
         const perms = [];
         const generatePerms = (arr, m = []) => {
@@ -606,62 +530,54 @@ function handleTileClick(i, e) {
         };
         generatePerms(d);
 
-   const isDoubleLast = document.getElementById('double-last').checked; // 체크박스 상태 확인
-
         let results = perms.map(seq => {
             let pos = currentStartPos, totalCoin = 0, totalCube = 0, history = [];
             
-            seq.forEach((dice, index) => { // index 추가
+            seq.forEach((dice, index) => {
                 let lapBonus = 0;
-                let nextPos = pos + dice;
+                let nextPosRaw = pos + dice;
 
-                // 1. 체크포인트 통과 체크 (보너스 500점)
-                if (dice > 0 && pos < 40 && nextPos >= 40) lapBonus += 500;
-                else if (dice < 0 && pos >= 1 && nextPos <= 0) lapBonus += 500;
+                // [수정] 양수(+) 이동으로 체크포인트를 지나거나 밟을 때만 400점 보너스
+                if (dice > 0 && pos < 40 && nextPosRaw >= 40) lapBonus += 400;
 
-                pos = nextPos;
+                // 실제 위치 계산 (1~40 순환)
+                pos = nextPosRaw;
                 while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
 
                 let tile = BOARD[pos];
                 
-                // 2. 특수 발판 이동 처리
+                // 특수 발판 이동 처리
                 if(tile.move !== 0) { 
-                    let moveNextPos = pos + tile.move;
-                    if (tile.move > 0 && pos < 40 && moveNextPos >= 40) lapBonus += 500;
-                    else if (tile.move < 0 && pos >= 1 && moveNextPos <= 0) lapBonus += 500;
+                    let moveNextPosRaw = pos + tile.move;
+                    // [수정] 이동 발판이 전진(+) 방향일 때만 체크포인트 보너스 400점 적용
+                    if (tile.move > 0 && pos < 40 && moveNextPosRaw >= 40) lapBonus += 400;
 
-                    pos = moveNextPos;
+                    pos = moveNextPosRaw;
                     while(pos > 40) pos -= 40; while(pos < 1) pos += 40;
                     tile = BOARD[pos]; 
                 }
                 
-                // 3. 보상 계산
-                let gain = 0;
+                // 보상 계산 (40번 칸은 기본 500점 고정)
+                let gain = tile.is_q ? qVal : (tile.move !== 0 ? 0 : (tile.c || 0));
+                
+                // 배율 적용 (40번 칸은 배율 영향을 받지 않음)
                 if (pos !== 40) {
-                    gain = tile.is_q ? qVal : (tile.move !== 0 ? 0 : (tile.c || 0));
-                    
-                    // 기본 배율 적용
                     if(boardBuffs[pos] === 1) gain *= 2; 
                     else if(boardBuffs[pos] === 2) gain = Math.floor(gain * 0.5); 
                     else if(boardBuffs[pos] === 3) gain *= 3;
                 }
                 
-                // [핵심 추가] 체크박스가 켜져 있고, 현재가 마지막(세 번째) 주사위일 때 보상 2배
-                // (경계선 통과 보너스 500점은 보통 배율 영향을 안 받으므로 gain에만 적용합니다)
-                if (isDoubleLast && index === 2) {
-                    gain *= 2;
-                }
+                // 도착칸 x2 체크박스 적용 (보너스 제외 보상점수만 2배)
+                if (isDoubleLast && index === 2) gain *= 2;
 
                 let turnTotal = gain + lapBonus;
                 totalCoin += turnTotal; 
                 totalCube += (tile.cube || 0);
-                
                 history.push({ land: pos, gain: turnTotal });
             });
             return { seq, totalCoin, totalCube, history };
         }).sort((a, b) => b.totalCoin - a.totalCoin || b.totalCube - a.totalCube);
 
-        /* ... 이후 결과 출력 로직 동일 ... */
         const resDiv = document.getElementById('result');
         document.querySelectorAll('.tile').forEach(t => t.classList.remove('highlight-tile'));
         let html = `<h4>최적 순서: ${results[0].seq.join(' → ')}</h4>`;
@@ -674,8 +590,6 @@ function handleTileClick(i, e) {
         });
         resDiv.innerHTML = html;
     }
-
-
 
     window.onload = init;
 </script>
